@@ -5,7 +5,10 @@
  */
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
+#include <string>
 #include "LinearRegressionClass.cpp"
 
 int main() {
@@ -28,21 +31,19 @@ int main() {
         return -1;
     }
 
-    // Calculate means of X and Y values
-    double xMean = linearRegression.meanFinder(X_values);
-    double yMean = linearRegression.meanFinder(Y_values);
+    linearRegression.fit(X_values, Y_values);
 
-    // Calculate slope and intercept
-    double slope = linearRegression.calculateSlope(X_values, Y_values, xMean, yMean);
-    double intercept = linearRegression.calculateIntercept(xMean, yMean, slope);
-    double R2 = linearRegression.calculateR2(X_values, Y_values, slope, intercept);
-
-    // Output results
-    std::cout << std::endl;
-    std::cout << "The slope is " << slope << "." << std::endl;
-    std::cout << "The intercept is " << intercept << "." << std::endl;
-    std::cout << "The coefficient of determination is " << R2 << "." << std::endl;
-
+    if (linearRegression.fit(X_values, Y_values) == 1) {
+        std::cout << std::endl;
+        std::cout << "The slope is " << linearRegression.slope << "." << std::endl;
+        std::cout << "The intercept is " << linearRegression.intercept << "." << std::endl;
+        std::cout << "The coefficient of determination is " << linearRegression.R2 << "." << std::endl;
+    }
+    else {
+        std::cout << "Error in linear regression fit." << std::endl;
+        return -1;
+    }
+    
     char continueInput;
 
     // A do-while loop to interactively gather new X values from the user and make predictions.
@@ -57,7 +58,7 @@ int main() {
         std::cin >> newX;
 
         // Make a prediction using the linear regression model.
-        double newY = slope * newX + intercept;
+        double newY = linearRegression.slope * newX + linearRegression.intercept;
 
         // Display the predicted Y value for the entered X value.
         std::cout << "Predicted Y for X=" << newX << " is: " << newY << std::endl;

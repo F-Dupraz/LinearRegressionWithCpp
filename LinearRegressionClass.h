@@ -11,6 +11,16 @@
 template <typename num>
 class LinearRegression {
 public:
+
+    num slope;
+    num intercept;
+    num R2;
+
+    ~LinearRegression();
+
+    num fit(const std::vector<num>& xValues, const std::vector<num>& yValues);
+
+private:
     /**
      * @brief Calculates the mean (average) of a vector of numeric values.
      *
@@ -26,7 +36,7 @@ public:
      * @param yValues The vector of Y values.
      * @return The slope of the linear regression model.
      */
-    num calculateSlope(const std::vector<num>& xValues, const std::vector<num>& yValues, const num& xMean, const num& yMean);
+    void calculateSlope(const std::vector<num>& xValues, const std::vector<num>& yValues, const num& xMean, const num& yMean);
 
     /**
      * @brief Calculates the intercept of a linear regression model.
@@ -35,7 +45,7 @@ public:
      * @param yValues The vector of Y values.
      * @return The intercept of the linear regression model.
      */
-    num calculateIntercept(const num& xMean, const num& yMean, const num& slope);
+    void calculateIntercept(const num& xMean, const num& yMean);
 
     /**
      * @brief Calculates the coefficient of determination (R^2) for a linear regression model.
@@ -44,8 +54,7 @@ public:
      * @param yValues The vector of Y values.
      * @return The coefficient of determination (R^2).
      */
-    num calculateR2(const std::vector<num>& xValues, const std::vector<num>& yValues, const num& slope, const num& intercept);
-
+    void calculateR2(const std::vector<num>& xValues, const std::vector<num>& yValues, const num& yMean);
 };
 
 #endif // LINEAR_REGRESSION_CLASS_H
