@@ -21,9 +21,15 @@
     <ClCompile Include="LinearRegressionClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ReadCsv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LinearRegressionClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadCsv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
