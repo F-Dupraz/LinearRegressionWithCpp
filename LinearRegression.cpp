@@ -1,6 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <vector>
 #include <string>
 
@@ -8,30 +6,30 @@
 #include "ReadCsv.h"
 
 int main() {
-
-    // Initialization of the class
+    // Initialization of the linear regression and CSV reader classes
     LinearRegression<double> linearRegression;
     ReadCsv myCsvReader;
 
+    // User input for file path, target column index, number of independent variables, and their indices
     std::string filepath;
-    std::cout << "Put the path to the file: ";
+    std::cout << "Enter the path to the file: ";
     std::cin >> filepath;
     std::cout << std::endl;
 
     unsigned int targetIndexY;
-    std::cout << "Enter the column index of the values of Y: ";
+    std::cout << "Enter the column index of the dependent variable (Y): ";
     std::cin >> targetIndexY;
     std::cout << std::endl;
 
     int numberOfValues;
-    std::cout << "How many values for the independent variable? ";
+    std::cout << "How many independent variables do you have? ";
     std::cin >> numberOfValues;
     std::cout << std::endl;
 
     std::vector<unsigned int> targetIndexX;
     for (int i = 0; i < numberOfValues; i++) {
-        int index;
-        std::cout << "Enter on of the indexes: ";
+        unsigned int index;
+        std::cout << "Enter one of the indices for the independent variable (X): ";
         std::cin >> index;
         targetIndexX.push_back(index);
         std::cout << std::endl;
@@ -42,10 +40,7 @@ int main() {
     std::cin >> hasHeader;
     std::cout << std::endl;
 
-
-    //
-    // --------------- ARREGLAR LA FUNCION PARA LOS VALORES INDEPENDIENTES ---------------
-    //
+    // Read CSV data for independent (X) and dependent (Y) variables
     std::vector<std::vector<double>> X_values = myCsvReader.getIndependentVariables(filepath, hasHeader, targetIndexX);
     std::vector<double> Y_values = myCsvReader.getTargetValues(filepath, hasHeader, targetIndexY);
 
@@ -60,8 +55,7 @@ int main() {
         return -1;
     }
 
-    linearRegression.fit(X_values, Y_values);
-
+    // Fit the linear regression model and display results
     if (linearRegression.fit(X_values, Y_values) == 1) {
         std::cout << "Intercept: " << linearRegression.intercept << std::endl;
         std::cout << "Coefficients: ";

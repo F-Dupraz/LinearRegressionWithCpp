@@ -4,81 +4,87 @@
 
 #include "ReadCsv.h"
 
+// Destructor for the ReadCsv class.
 ReadCsv::~ReadCsv() {}
 
+// Get target values from a CSV file.
 std::vector<double> ReadCsv::getTargetValues(std::string filepath, char hasHeader, unsigned int columnIndex) {
-    // Abrir el archivo CSV
+    // Open the CSV file
     std::ifstream file(filepath);
 
+    // Check if the file is successfully opened
     if (!file.is_open()) {
-        std::cerr << "No se pudo abrir el archivo." << std::endl;
+        std::cerr << "Unable to open the file." << std::endl;
         return std::vector<double>{};
     }
 
-    // Leer el encabezado si existe
+    // Read the header if it exists
     if (hasHeader) {
         std::string header;
         std::getline(file, header);
-        // Puedes almacenar el encabezado o realizar alguna acción según tus necesidades
+        // Additional actions can be performed based on the header if needed
     }
 
-    // Leer los datos del archivo CSV
+    // Read data from the CSV file
     std::vector<double> columnData;
     std::string line;
 
     while (std::getline(file, line)) {
         std::istringstream ss(line);
-        std::vector<double> row;
 
+        // Parse each field in the line
         for (size_t i = 0; i <= columnIndex; ++i) {
             std::string field;
             if (!std::getline(ss, field, ',')) {
-                // Manejar el caso en que la línea no tiene suficientes campos
-                std::cerr << "Error: La línea no tiene suficientes campos." << std::endl;
+                // Handle the case where the line does not have enough fields
+                std::cerr << "Error: The line does not have enough fields." << std::endl;
                 file.close();
                 return std::vector<double>{};
             }
 
+            // If the desired column is reached, convert the field to a double and add it to the vector
             if (i == columnIndex) {
                 try {
                     columnData.push_back(std::stod(field));
                 }
                 catch (const std::invalid_argument& e) {
-                    // Manejar el caso en que el campo no es un número
-                    std::cerr << "Error al convertir a double: " << e.what() << std::endl;
-                    // Puedes decidir ignorar el campo no numérico o manejarlo de otra manera
+                    // Handle the case where the field is not a number
+                    std::cerr << "Error converting to double: " << e.what() << std::endl;
+                    // You can decide to ignore the non-numeric field or handle it differently
                 }
             }
         }
     }
 
-    // Cerrar el archivo después de leer
+    // Close the file after reading
     file.close();
 
-    // Ahora 'columnData' contiene los datos de la columna específica
+    // 'columnData' now contains the data from the specific column
     return columnData;
 }
 
+// Get independent variables from a CSV file.
 std::vector<std::vector<double>> ReadCsv::getIndependentVariables(std::string filepath, char hasHeader, std::vector<unsigned int> columnIndices) {
-    // Abrir el archivo CSV
+    // Open the CSV file
     std::ifstream file(filepath);
 
+    // Check if the file is successfully opened
     if (!file.is_open()) {
-        std::cerr << "No se pudo abrir el archivo." << std::endl;
+        std::cerr << "Unable to open the file." << std::endl;
         return std::vector<std::vector<double>>{};
     }
 
-    // Leer el encabezado si existe
+    // Read the header if it exists
     if (hasHeader) {
         std::string header;
         std::getline(file, header);
-        // Puedes almacenar el encabezado o realizar alguna acción según tus necesidades
+        // Additional actions can be performed based on the header if needed
     }
 
-    // Inicializar la matriz bidimensional para almacenar datos de múltiples columnas
+    // Initialize the 2D vector to store data from multiple columns
     std::vector<std::vector<double>> columnsData(columnIndices.size());
 
-    // Leer los datos del archivo CSV
+    // Read data from the CSV file
     std::string line;
 
     while (std::getline(file, line)) {
@@ -86,35 +92,37 @@ std::vector<std::vector<double>> ReadCsv::getIndependentVariables(std::string fi
         std::string field;
         unsigned int currentIndex = 0;
 
+        // Parse each field in the line
         while (std::getline(ss, field, ',')) {
+            // Check if the current column index is within the specified column indices
             if (currentIndex < columnIndices.size()) {
                 auto column = std::find(columnIndices.begin(), columnIndices.end(), currentIndex);
                 if (column != columnIndices.end()) {
+                    // Convert the field to a double and add it to the corresponding vector
                     try {
                         columnsData[currentIndex].push_back(std::stod(field));
                     }
                     catch (const std::invalid_argument& e) {
-                        // Manejar el caso en que el campo no es un número
-                        std::cerr << "Error al convertir a double: " << e.what() << " - Campo: " << field << std::endl;
-                        // Puedes decidir ignorar el campo no numérico o manejarlo de otra manera
+                        // Handle the case where the field is not a number
+                        std::cerr << "Error converting to double: " << e.what() << " - Field: " << field << std::endl;
+                        // You can decide to ignore the non-numeric field or handle it differently
                     }
 
-                    currentIndex++; // Incrementa después de agregar datos
+                    currentIndex++; // Increment after adding data
                 }
                 else {
-                    currentIndex++;  // Incrementa después de agregar datos
+                    currentIndex++;  // Increment after skipping data
                 }
             }
             else {
-                // Ignorar campos adicionales si hay más de los especificados en columnIndices
+                // Ignore additional fields if there are more than specified in columnIndices
                 break;
             }
         }
     }
 
-    // Cerrar el archivo después de leer
+    // Close the file after reading
     file.close();
 
     return columnsData;
 }
-
