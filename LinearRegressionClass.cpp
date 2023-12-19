@@ -17,12 +17,15 @@ num LinearRegression<num>::fit(const std::vector<std::vector<num>>& xValues, con
     }
 
     // Determine the number of coefficients (including intercept)
-    size_t numCoefficients = xValues.size() + 1;
+    size_t numCoefficients = xValues.size();
     coefficients.resize(numCoefficients, 0);
 
     // Calculate mean values for each column in the input matrix
     std::vector<num> xMeans(numCoefficients, 0);
     calculateMeans(xValues, xMeans);
+
+    // Calculate the mean value for the dependent variable
+    num yMean = meanFinder(yValues);
 
     // Perform linear regression using the method of least squares
     for (size_t j = 0; j < numCoefficients; ++j) {
@@ -31,7 +34,7 @@ num LinearRegression<num>::fit(const std::vector<std::vector<num>>& xValues, con
 
         for (size_t i = 0; i < xValues.size(); ++i) {
             num xValue = (j == 0) ? 1 : xValues[i][j - 1];  // Intercept or Xj
-            accumulativeNumeratorSum += (xValue - xMeans[j]) * (yValues[i] - meanFinder(yValues));
+            accumulativeNumeratorSum += (xValue - xMeans[j]) * (yValues[i] - yMean);
             accumulativeDenominatorSum += (xValue - xMeans[j]) * (xValue - xMeans[j]);
         }
 
@@ -45,7 +48,7 @@ num LinearRegression<num>::fit(const std::vector<std::vector<num>>& xValues, con
     }
 
     // Calculate and store the intercept
-    calculateIntercept(xMeans);
+    calculateIntercept(xMeans, yMean);
 
     return 1;
 }
@@ -53,16 +56,19 @@ num LinearRegression<num>::fit(const std::vector<std::vector<num>>& xValues, con
 template <typename num>
 num LinearRegression<num>::predict(const std::vector<num>& xValues) const {
     // Check if the number of features for prediction is correct
-    if (xValues.size() != coefficients.size() - 1) {
+    if (xValues.size() != coefficients.size()) {
         std::cerr << "Error: Incorrect number of features for prediction." << std::endl;
         return std::numeric_limits<num>::quiet_NaN();
     }
 
     // Calculate the predicted dependent variable value
-    num result = coefficients[0];  // Intercept
+    num result = this->intercept;
 
-    for (size_t j = 1; j < coefficients.size(); ++j) {
-        result += coefficients[j] * xValues[j - 1];
+    std::cout << "coefficients.size(): " << coefficients.size() << std::endl;
+    std::cout << "xValues.size(): " << xValues.size() << std::endl;
+
+    for (size_t j = 0; j < coefficients.size(); ++j) {
+        result += coefficients[j] * xValues[j];
     }
 
     return result;
@@ -71,13 +77,13 @@ num LinearRegression<num>::predict(const std::vector<num>& xValues) const {
 template <typename num>
 num LinearRegression<num>::getSlope() const {
     // Return the slope (coefficient) assuming simple linear regression with one feature
-    return coefficients[1];
+    return coefficients;
 }
 
 template <typename num>
 num LinearRegression<num>::getIntercept() const {
     // Return the intercept assuming simple linear regression with one feature
-    return coefficients[0];
+    return this->intercept;
 }
 
 template <typename num>
@@ -110,17 +116,23 @@ void LinearRegression<num>::calculateMeans(const std::vector<std::vector<num>>& 
                 std::cerr << "Warning: Column index out of range for row " << i << std::endl;
             }
         }
-        means[i] = accumulatedMeans / means.size();
+        means[i] = accumulatedMeans / xValues[i].size();
     }
 }
 
 template <typename num>
-void LinearRegression<num>::calculateIntercept(const std::vector<num>& xMeans) {
+void LinearRegression<num>::calculateIntercept(const std::vector<num>& xMeans, const num& yMeans) {
+    
+    for (int i = 0; i < xMeans.size(); ++i) {
+        std::cout << "This is the mean of x[" << i << "]: " << xMeans[i] << std::endl;
+    }
+    std::cout << "This is the mean of y: " << yMeans<< std::endl;
+    
     // Calculate the intercept of the linear regression model
-    coefficients[0] = meanFinder(xMeans);
-    for (size_t j = 1; j < coefficients.size(); ++j) {
-        coefficients[0] -= coefficients[j] * xMeans[j - 1];
+    num myIntercept = yMeans;
+    for (size_t j = 0; j < coefficients.size(); ++j) {
+        myIntercept -= coefficients[j] * xMeans[j];
     }
 
-    this->intercept = coefficients[0];
+    this->intercept = myIntercept;
 }

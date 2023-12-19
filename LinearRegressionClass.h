@@ -70,7 +70,7 @@ private:
      *
      * @param xMeans Vector of mean values for each independent variable.
      */
-    void calculateIntercept(const std::vector<num>& xMeans);
+    void calculateIntercept(const std::vector<num>& xMeans, const num& yMeans);
 };
 
 #endif // LINEAR_REGRESSION_CLASS_H

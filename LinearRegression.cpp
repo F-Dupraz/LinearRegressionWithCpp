@@ -57,9 +57,9 @@ int main() {
 
     // Fit the linear regression model and display results
     if (linearRegression.fit(X_values, Y_values) == 1) {
-        std::cout << "Intercept: " << linearRegression.intercept << std::endl;
+        std::cout << "Intercept: " << linearRegression.getIntercept() << std::endl;
         std::cout << "Coefficients: ";
-        for (int i = 1; i < linearRegression.coefficients.size(); ++i) {
+        for (int i = 0; i < linearRegression.coefficients.size(); ++i) {
             std::cout << linearRegression.coefficients[i] << " ";
         }
         std::cout << std::endl;
@@ -67,6 +67,13 @@ int main() {
     else {
         std::cout << "Error in linear regression fit." << std::endl;
     }
+
+    std::cout << std::endl;
+
+    double prediction = linearRegression.predict({ 63, 33.2, 0 });
+
+    std::cout << "The prediction is: " << prediction << std::endl;
+    std::cout << std::endl;
 
     return 0;
 }
