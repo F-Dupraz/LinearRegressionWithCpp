@@ -9,7 +9,9 @@ public:
 
     ~ReadCsv();
 
-    std::vector<double> getColumn(std::string filepath, char hasHeader, unsigned int columnIndex);
+    std::vector<double> getTargetValues(std::string filepath, char hasHeader, unsigned int columnIndex);
+
+    std::vector<std::vector<double>> getIndependentVariables(std::string filepath, char hasHeader, std::vector<unsigned int> xTargets);
 };
 
 #endif // READ_CSV_H

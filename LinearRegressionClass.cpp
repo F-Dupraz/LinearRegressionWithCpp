@@ -1,17 +1,80 @@
 #include <iostream>
+#include <vector>
+#include <stdexcept>
+#include <limits>
 
 #include "LinearRegressionClass.h"
 
 template <typename num>
-LinearRegression<num>::~LinearRegression() {
-    std::cout << std::endl;
+LinearRegression<num>::~LinearRegression() {}
+
+template <typename num>
+num LinearRegression<num>::fit(const std::vector<std::vector<num>>& xValues, const std::vector<num>& yValues) {
+    if (xValues.empty() || yValues.empty()) {
+        std::cerr << "Error: One or both vectors are empty." << std::endl;
+        return std::numeric_limits<num>::quiet_NaN();
+    }
+
+    size_t numCoefficients = xValues.size() + 1;  // Include the intercept
+    coefficients.resize(numCoefficients, 0);
+
+    std::vector<num> xMeans(numCoefficients, 0);
+    calculateMeans(xValues, xMeans);
+
+    for (size_t j = 0; j < numCoefficients; ++j) {
+        num accumulativeNumeratorSum = 0;
+        num accumulativeDenominatorSum = 0;
+
+        for (size_t i = 0; i < xValues.size(); ++i) {
+            num xValue = (j == 0) ? 1 : xValues[i][j - 1];  // Intercept or Xj
+            accumulativeNumeratorSum += (xValue - xMeans[j]) * (yValues[i] - meanFinder(yValues));
+            accumulativeDenominatorSum += (xValue - xMeans[j]) * (xValue - xMeans[j]);
+        }
+
+        // Avoid division by zero
+        if (accumulativeDenominatorSum == 0) {
+            std::cerr << "Error: Division by zero in coefficient calculation." << std::endl;
+            return std::numeric_limits<num>::quiet_NaN();
+        }
+
+        coefficients[j] = accumulativeNumeratorSum / accumulativeDenominatorSum;
+    }
+
+    calculateIntercept(xMeans);
+
+    return 1;
 }
 
 template <typename num>
-num LinearRegression<num>::meanFinder(const std::vector<num>& findMean) {
+num LinearRegression<num>::predict(const std::vector<num>& xValues) const {
+    if (xValues.size() != coefficients.size() - 1) {
+        std::cerr << "Error: Incorrect number of features for prediction." << std::endl;
+        return std::numeric_limits<num>::quiet_NaN();
+    }
+
+    num result = coefficients[0];  // Intercept
+
+    for (size_t j = 1; j < coefficients.size(); ++j) {
+        result += coefficients[j] * xValues[j - 1];
+    }
+
+    return result;
+}
+
+template <typename num>
+num LinearRegression<num>::getSlope() const {
+    return coefficients[1];  // Assuming simple linear regression with one feature
+}
+
+template <typename num>
+num LinearRegression<num>::getIntercept() const {
+    return coefficients[0];  // Assuming simple linear regression with one feature
+}
+
+template <typename num>
+num LinearRegression<num>::meanFinder(const std::vector<num>& findMean) const {
     if (findMean.empty()) {
         std::cerr << "Error: The vector was empty." << std::endl;
-        // Devuelve un valor representativo en caso de error
         return std::numeric_limits<num>::quiet_NaN();
     }
 
@@ -25,74 +88,27 @@ num LinearRegression<num>::meanFinder(const std::vector<num>& findMean) {
 }
 
 template <typename num>
-void LinearRegression<num>::calculateSlope(const std::vector<num>& xValues, const std::vector<num>& yValues, const num& xMean, const num& yMean) {
-    num accumulativeNumeratorSum = 0;
-    num accumulativeDenominatorSum = 0;
-
-    for (size_t i = 0; i < xValues.size(); i++) {
-        accumulativeNumeratorSum += (xValues[i] - xMean) * (yValues[i] - yMean);
-        accumulativeDenominatorSum += (xValues[i] - xMean) * (xValues[i] - xMean);
+void LinearRegression<num>::calculateMeans(const std::vector<std::vector<num>>& xValues, std::vector<num>& means) const {
+    for (size_t i = 0; i < xValues.size(); ++i) {
+        num accumulatedMeans = 0;
+        for (size_t j = 0; j < xValues[i].size(); ++j) {
+            if (j < xValues[i].size()) {
+                accumulatedMeans += xValues[i][j];
+            }
+            else {
+                std::cerr << "Warning: Column index out of range for row " << i << std::endl;
+            }
+        }
+        means[i] = accumulatedMeans / means.size();
     }
-
-    // Avoid division by zero
-    if (accumulativeDenominatorSum == 0) {
-        std::cout << "Error: Division by zero in slope calculation." << std::endl;
-    }
-
-    this->slope = accumulativeNumeratorSum / accumulativeDenominatorSum;
 }
 
 template <typename num>
-void LinearRegression<num>::calculateIntercept(const num& xMean, const num& yMean) {
-    this->intercept = yMean - this->slope * xMean;
-}
-
-template <typename num>
-void LinearRegression<num>::calculateR2(const std::vector<num>& xValues, const std::vector<num>& yValues, const num& yMean) {
-    // Calculate predicted Y values
-    std::vector<num> predictedY;
-    for (const auto& x : xValues) {
-        predictedY.push_back(this->slope * x + this->intercept);
+void LinearRegression<num>::calculateIntercept(const std::vector<num>& xMeans) {
+    coefficients[0] = meanFinder(xMeans);
+    for (size_t j = 1; j < coefficients.size(); ++j) {
+        coefficients[0] -= coefficients[j] * xMeans[j - 1];
     }
 
-    // Calculate total sum of squares
-    num totalSumSquares = 0;
-    for (const auto& y : yValues) {
-        totalSumSquares += (y - yMean) * (y - yMean);
-    }
-
-    // Calculate residual sum of squares
-    num residualSumSquares = 0;
-    for (size_t i = 0; i < yValues.size(); i++) {
-        residualSumSquares += (yValues[i] - predictedY[i]) * (yValues[i] - predictedY[i]);
-    }
-
-    // Calculate R^2
-    this->R2 = 1 - (residualSumSquares / totalSumSquares);
-}
-
-
-template <typename num>
-num LinearRegression<num>::fit(const std::vector<num>& xValues, const std::vector<num>& yValues) {
-    if (xValues.empty() || yValues.empty()) {
-        std::cerr << "Error: One or both vectors are empty." << std::endl;
-        // Devuelve un valor representativo en caso de error
-        return std::numeric_limits<num>::quiet_NaN();
-    }
-
-    num xMean = this->meanFinder(xValues);
-    num yMean = this->meanFinder(yValues);
-
-    if (std::isnan(xMean) || std::isnan(yMean)) {
-        std::cerr << "Error: Mean calculation failed." << std::endl;
-        // Devuelve un valor representativo en caso de error
-        return std::numeric_limits<num>::quiet_NaN();
-    }
-
-    this->calculateSlope(xValues, yValues, xMean, yMean);
-    this->calculateIntercept(xMean, yMean);
-    this->calculateR2(xValues, yValues, yMean);
-
-    // Devuelve algún valor representativo de éxito
-    return 1;
+    this->intercept = coefficients[0];
 }
